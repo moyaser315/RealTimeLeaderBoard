@@ -17,9 +17,12 @@ namespace App.Database
         private string _email;
         [EmailAddress]
         [Required]
-        public string Email { get => _email;
-        set => _email = value.ToLower(); }
-        public ICollection<ScoreModel> Scores{ get; set; } = new List<ScoreModel>();
+        public string Email
+        {
+            get => _email;
+            set => _email = value.ToLower();
+        }
+        public ICollection<ScoreModel> Scores { get; set; } = new List<ScoreModel>();
 
     }
 }
