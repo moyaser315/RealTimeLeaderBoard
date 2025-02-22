@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
+using App.Models;
 
 namespace App.Database
 {
@@ -11,6 +12,7 @@ namespace App.Database
         public int Id { get; set; }
         public string Name { get; set; }
         [Required]
+        [UniqueUser]
         public string UserName { get; set; }
         [Required]
         public string Password { get; set; }
