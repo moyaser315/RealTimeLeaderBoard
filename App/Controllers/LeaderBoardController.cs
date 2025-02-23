@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using App.Database;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace App.Controllers
@@ -20,6 +22,8 @@ namespace App.Controllers
 
         public IActionResult Index()
         {
+            ApplicationDbContext context =  new ApplicationDbContext();
+
             return View();
         }
 
