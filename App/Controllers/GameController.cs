@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using App.Database;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -18,9 +19,16 @@ namespace App.Controllers
             _logger = logger;
         }
 
-        public IActionResult Index()
+        public IActionResult Game(string name)
         {
-            return View();
+            ApplicationDbContext context = new ApplicationDbContext();
+            var game = context.Games.FirstOrDefault(x => x.Name == name);
+            if(game == null){
+                return NotFound();
+            }
+            var scores = context.Scores.Where(x => x.GameID == game.Id).OrderBy(x =>x.Score).ToList();
+
+            return View("Game");
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
