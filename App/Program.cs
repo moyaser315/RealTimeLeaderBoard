@@ -1,28 +1,16 @@
+
+
+using App.Database;
+
 var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-builder.Services.AddControllersWithViews();
-
+var connString = builder.Configuration.GetConnectionString("AppDb");
+builder.Services.AddNpgsql<ApplicationDbContext>(connString); //Scoped Lifetime
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
-    app.UseHttpsRedirection();
-}
+// GET /games
 
-
-app.UseStaticFiles();
-
-app.UseRouting();
-
-app.UseAuthorization();
-
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
+// Add transient --> lightweight service used once
+// Add Scoped --> will be used during scope of a single request
+// Add Singleton --> will be used as a single instance for all requests
