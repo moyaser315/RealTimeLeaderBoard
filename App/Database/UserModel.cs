@@ -10,20 +10,16 @@ namespace App.Database
     public class UserModel
     {
         public int Id { get; set; }
-        public string Name { get; set; }
+        public required string Name { get; set; }
         [Required]
         [UniqueUser]
-        public string UserName { get; set; }
+        public required string UserName { get; set; }
         [Required]
-        public string Password { get; set; }
-        private string _email;
+        public required string Password { get; set; }
+
         [EmailAddress]
         [Required]
-        public string Email
-        {
-            get => _email;
-            set => _email = value.ToLower();
-        }
+        public required string Email { get; set;}
         public ICollection<ScoreModel> Scores { get; set; } = new List<ScoreModel>();
 
     }
