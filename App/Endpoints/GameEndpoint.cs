@@ -24,6 +24,7 @@ namespace App.Endpoints
             ).WithName("GetGame");
 
 
+
             return group;
         }
     }

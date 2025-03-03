@@ -1,16 +1,26 @@
-
-
 using App.Database;
 
 var builder = WebApplication.CreateBuilder(args);
 var connString = builder.Configuration.GetConnectionString("AppDb");
-builder.Services.AddNpgsql<ApplicationDbContext>(connString); //Scoped Lifetime
+builder.Services.AddNpgsql<ApplicationDbContext>(connString);
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddOpenApiDocument(config =>
+{
+    config.DocumentName = "LeaderboardAPI";
+    config.Title = "LeaderboardAPI v1";
+    config.Version = "v1";
+});
 var app = builder.Build();
-
-// GET /games
-
+if (app.Environment.IsDevelopment())
+{
+    app.UseOpenApi();
+    app.UseSwaggerUi(config =>
+    {
+        config.DocumentTitle = "LeaderboardAPI";
+        config.Path = "/swagger";
+        config.DocumentPath = "/swagger/{documentName}/swagger.json";
+        config.DocExpansion = "list";
+    });
+}
 
 app.Run();
-// Add transient --> lightweight service used once
-// Add Scoped --> will be used during scope of a single request
-// Add Singleton --> will be used as a single instance for all requests
