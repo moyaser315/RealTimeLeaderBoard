@@ -1,7 +1,6 @@
 namespace App.Dtos;
 
-public record class UserDto(
-    int Id,
+public record class CreateUserDto(
     string Name,
     string Email,
     string Password,

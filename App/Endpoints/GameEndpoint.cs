@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading.Tasks;
 using App.Database;
 using Microsoft.EntityFrameworkCore;
@@ -18,7 +19,8 @@ namespace App.Endpoints
             group.MapGet("/{id}", async (int id, ApplicationDbContext context) =>
             {
                 var game = await context.Games.Where(g => g.Id == id).Include(x => x.Scores).FirstOrDefaultAsync();
-                return game is null ? Results.NotFound("There's No such Game") :
+                return game is null ? 
+                Results.NotFound("There's No such Game") :
                 Results.Ok(game);
             }
             ).WithName("GetGame");
