@@ -37,7 +37,7 @@ namespace App.Endpoints
                 var gameScores = await context.Scores
                 .Where(g => g.GameID == id)
                 .Include(g => g.User)
-                .Select(g => g.ToScoreListDto())
+                .Select(g => g.ToGameScoreDto())
                 .OrderByDescending(g => g.Score)
                 .ToListAsync();
 
@@ -47,6 +47,15 @@ namespace App.Endpoints
             }
             ).WithName("GetGame");
 
+            // post score
+            group.MapPost("/{id}", async (int id, SubmitScoreDto score, ApplicationDbContext context) =>{
+                var scoreModel = score.ToScoreModel(id);
+                // scoreModel.User = context.User;
+                scoreModel.Game = await context.Games.Where(g => g.Id == id).FirstAsync();
+                await context.SaveChangesAsync();
+                return Results.Created();
+
+            });
 
             return group;
         }
