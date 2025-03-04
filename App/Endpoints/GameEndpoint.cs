@@ -4,6 +4,8 @@ using System.Linq;
 using System.Reflection.Metadata.Ecma335;
 using System.Threading.Tasks;
 using App.Database;
+using App.Dtos;
+using App.Mapping;
 using Microsoft.EntityFrameworkCore;
 namespace App.Endpoints
 {
@@ -13,18 +15,37 @@ namespace App.Endpoints
         {
             var group = app.MapGroup("games");
 
+            // Get All Games
             group.MapGet("/", async (ApplicationDbContext context) =>
-                    await context.Games.AsNoTracking().ToListAsync());
-
+                    {
+                        var games= await context.Games.AsNoTracking().ToListAsync();
+                        if(games.Count != 0)
+                        {
+                            List<GamesDto> gameNames = [];
+                            foreach(var game in games){
+                                gameNames.Add(game.ToDto());
+                            }
+                            return Results.Ok(gameNames);
+                        }
+                        return Results.NotFound();
+                    }
+                );
+            
+            // Get Game Scores
             group.MapGet("/{id}", async (int id, ApplicationDbContext context) =>
             {
-                var game = await context.Games.Where(g => g.Id == id).Include(x => x.Scores).FirstOrDefaultAsync();
-                return game is null ? 
+                var gameScores = await context.Scores
+                .Where(g => g.GameID == id)
+                .Include(g => g.User)
+                .Select(g => g.ToScoreListDto())
+                .OrderByDescending(g => g.Score)
+                .ToListAsync();
+
+                return gameScores.Count == 0 ? 
                 Results.NotFound("There's No such Game") :
-                Results.Ok(game);
+                Results.Ok(gameScores);
             }
             ).WithName("GetGame");
-
 
 
             return group;
