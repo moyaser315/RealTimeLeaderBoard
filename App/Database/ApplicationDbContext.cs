@@ -19,7 +19,7 @@ namespace App.Database
             modelBuilder.Entity<UserModel>()
             .HasIndex(u => u.Email)
             .IsUnique();
-            
+
             modelBuilder.Entity<ScoreModel>()
             .Property(s => s.TimeStamp)
             .HasDefaultValueSql("NOW()");
@@ -37,6 +37,15 @@ namespace App.Database
             .WithMany(u => u.Scores)
             .HasForeignKey(s => s.GameID)
             .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<GameModel>().HasData(
+                new { Id = 1, Name = "Sdouko" },
+                new { Id = 2, Name = "Snake" },
+                new { Id = 3, Name = "Mine Sweeper" }
+            );
+            modelBuilder.Entity<ScoreModel>().HasData(
+                new { Id = 1, GameID=1, UserId=1,Score=50}
+            );
         }
 
         public DbSet<UserModel> Users { get; set; }

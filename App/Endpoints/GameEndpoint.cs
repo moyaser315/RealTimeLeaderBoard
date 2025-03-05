@@ -37,9 +37,12 @@ namespace App.Endpoints
                 var gameScores = await context.Scores
                 .Where(g => g.GameID == id)
                 .Include(g => g.User)
-                .Select(g => g.ToScoreListDto())
                 .OrderByDescending(g => g.Score)
+                .Select(g => g.ToGameScoreDto())
                 .ToListAsync();
+                // .Select(g => g.ToGameScoreDto())
+                // .OrderByDescending(g => g.Score)
+                
 
                 return gameScores.Count == 0 ? 
                 Results.NotFound("There's No such Game") :
@@ -47,7 +50,7 @@ namespace App.Endpoints
             }
             ).WithName("GetGame");
 
-
+    
             return group;
         }
     }

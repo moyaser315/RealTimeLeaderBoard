@@ -13,6 +13,6 @@ namespace App.Models
         public int GameID { get; set; }
         public GameModel? Game { get; set; }
         public int Score { get; set; }
-        public DateTime TimeStamp { get; set; }
+        public DateTime TimeStamp { get; set; }= DateTime.UtcNow;
     }
 }
