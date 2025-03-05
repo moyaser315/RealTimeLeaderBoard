@@ -37,9 +37,12 @@ namespace App.Endpoints
                 var gameScores = await context.Scores
                 .Where(g => g.GameID == id)
                 .Include(g => g.User)
-                .Select(g => g.ToGameScoreDto())
                 .OrderByDescending(g => g.Score)
+                .Select(g => g.ToGameScoreDto())
                 .ToListAsync();
+                // .Select(g => g.ToGameScoreDto())
+                // .OrderByDescending(g => g.Score)
+                
 
                 return gameScores.Count == 0 ? 
                 Results.NotFound("There's No such Game") :
@@ -48,10 +51,11 @@ namespace App.Endpoints
             ).WithName("GetGame");
 
             // post score
-            group.MapPost("/{id}", async (int id, SubmitScoreDto score, ApplicationDbContext context) =>{
-                var scoreModel = score.ToScoreModel(id);
-                // scoreModel.User = context.User;
-                scoreModel.Game = await context.Games.Where(g => g.Id == id).FirstAsync();
+            group.MapPost("/{uid}/{id}", async (int uid,int id, SubmitScoreDto score, ApplicationDbContext context) =>{
+                var scoreModel = score.ToScoreModel(uid,id);
+                scoreModel.User = context.Users.Find(uid);
+                scoreModel.Game = context.Games.Find(id);
+                context.Add(scoreModel);
                 await context.SaveChangesAsync();
                 return Results.Created();
 

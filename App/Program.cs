@@ -1,4 +1,5 @@
 using App.Database;
+using App.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
 var connString = builder.Configuration.GetConnectionString("AppDb");
@@ -23,4 +24,5 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+app.MapGameEndpoints();
 app.Run();

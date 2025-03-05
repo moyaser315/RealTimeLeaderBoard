@@ -30,11 +30,11 @@ namespace App.Mapping
 
         }
 
-        public static ScoreModel ToScoreModel(this SubmitScoreDto score, int id)
+        public static ScoreModel ToScoreModel(this SubmitScoreDto score,int userId, int id)
         {
             return new ScoreModel
             {
-                UserId = score.UserId,
+                UserId = userId,
                 GameID = id,
                 Score = score.Score,
                 TimeStamp = score.TimeStamp
