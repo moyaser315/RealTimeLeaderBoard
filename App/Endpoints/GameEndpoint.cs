@@ -50,17 +50,7 @@ namespace App.Endpoints
             }
             ).WithName("GetGame");
 
-            // post score
-            group.MapPost("/{uid}/{id}", async (int uid,int id, SubmitScoreDto score, ApplicationDbContext context) =>{
-                var scoreModel = score.ToScoreModel(uid,id);
-                scoreModel.User = context.Users.Find(uid);
-                scoreModel.Game = context.Games.Find(id);
-                context.Add(scoreModel);
-                await context.SaveChangesAsync();
-                return Results.Created();
-
-            });
-
+    
             return group;
         }
     }

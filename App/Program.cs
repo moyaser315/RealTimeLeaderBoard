@@ -25,4 +25,5 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapGameEndpoints();
+app.MapUserEndpoints();
 app.Run();
