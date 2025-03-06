@@ -1,12 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using System.Threading.Tasks;
 using App.Database;
 using App.Dtos;
 using App.Mapping;
 using Microsoft.EntityFrameworkCore;
+
 namespace App.Endpoints
 {
     public static class GameEndpoint
