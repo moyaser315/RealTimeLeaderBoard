@@ -16,6 +16,14 @@ namespace App.Mapping
                 UserName: user.UserName
             );
         }
+        public static UserModel ToUserModel(this CreateUserDto user){
+            return new UserModel{
+                UserName = user.UserName,
+                Email = user.Email,
+                Password=user.Password,
+                Name = user.Name
+            };
+        }
         
     }
 }
