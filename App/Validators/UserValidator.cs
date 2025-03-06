@@ -4,14 +4,14 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using App.Database;
-using App.Models;
+using App.Dtos;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
 namespace App.Validators
 {
 
-    public class UserValidator : AbstractValidator<UserModel>
+    public class UserValidator : AbstractValidator<CreateUserDto>
     {
         private readonly ApplicationDbContext _context;
         public UserValidator(ApplicationDbContext context)
@@ -32,8 +32,9 @@ namespace App.Validators
             .NotEmpty()
             .MustAsync(async (username, cancellationToken) =>
             {
-                return await _context.Users.AnyAsync(u => u.UserName == username, cancellationToken);
-            });
+                return ! await _context.Users.AnyAsync(u => u.UserName == username, cancellationToken);
+            })
+            .WithMessage("UserName Already Exists");
         }
 
     }

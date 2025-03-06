@@ -6,6 +6,7 @@ using App.Database;
 using App.Dtos;
 using App.Mapping;
 using App.Models;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -44,11 +45,16 @@ namespace App.Endpoints
 
             });
 
-            group.MapPost("/signup", (CreateUserDto user, ApplicationDbContext context) =>
+            group.MapPost("/signup", async (CreateUserDto user, ApplicationDbContext context, IValidator<CreateUserDto> validtor) =>
             {
+                var validation = await validtor.ValidateAsync(user);
+                if(! validation.IsValid){
+                    return Results.ValidationProblem(validation.ToDictionary());
+                }
                 var newUser = user.ToUserModel();
-                context.Add(newUser);
-                context.SaveChanges();
+                
+                await context.AddAsync(newUser);
+                await context.SaveChangesAsync();
                 return Results.Created();
             });
 
