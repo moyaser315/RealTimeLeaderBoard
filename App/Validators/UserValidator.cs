@@ -35,7 +35,7 @@ namespace App.Validators
             .NotEmpty().WithMessage("this field can't be empty")
             .MinimumLength(6).WithMessage("Must be at least 4 charachters")
             .Matches(@"[A-Z]+").WithMessage("Must Contain at least 1 uppercase letter")
-            .Matches(@"[A-Z]+").WithMessage("Must Contain at least 1 lowercase letter")
+            .Matches(@"[a-z]+").WithMessage("Must Contain at least 1 lowercase letter")
             .Matches(@"[0-9]+").WithMessage("Must Contain at least 1 number");
         }
 

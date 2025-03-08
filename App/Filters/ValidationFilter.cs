@@ -28,9 +28,11 @@ namespace App.Filters
                 {
                     return Results.ValidationProblem(validation.ToDictionary());
                 }
-                else{
-                    return Results.Problem("Couldn't find type to validate");
-                }
+
+            }
+            else
+            {
+                return Results.Problem("Couldn't find type to validate");
             }
             return await next(context);
         }
