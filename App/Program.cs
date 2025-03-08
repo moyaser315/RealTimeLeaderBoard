@@ -1,8 +1,12 @@
+using System.Text;
 using App.Database;
 using App.Endpoints;
+using App.Services;
 using App.Validators;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +15,26 @@ builder.Services.AddNpgsql<ApplicationDbContext>(connString);
 
 builder.Services.AddValidatorsFromAssemblyContaining<UserValidator>();
 
+var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+var secretKey = Encoding.UTF8.GetBytes(
+    jwtSettings["SignKey"]?? throw new ArgumentNullException("JWT secret key is missing in configuration.")
+    );
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(secretKey),
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidIssuer = jwtSettings["Issuer"],
+            ValidAudience = jwtSettings["Audience"],
+            ValidateLifetime = true
+        };
+    });
+builder.Services.AddSingleton<AuthenicationService>();
+builder.Services.AddAuthorization();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApiDocument(config =>
@@ -22,6 +46,8 @@ builder.Services.AddOpenApiDocument(config =>
 
 
 var app = builder.Build();
+
+
 if (app.Environment.IsDevelopment())
 {
     app.UseOpenApi();
@@ -33,7 +59,8 @@ if (app.Environment.IsDevelopment())
         config.DocExpansion = "list";
     });
 }
-
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapGameEndpoints();
 app.MapUserEndpoints();
 app.Run();

@@ -2,6 +2,7 @@ using App.Database;
 using App.Dtos;
 using App.Filters;
 using App.Mapping;
+using App.Services;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -47,9 +48,10 @@ namespace App.Endpoints
 
             });
 
-            group.MapPost("/signup", async (CreateUserDto user, ApplicationDbContext context) =>
+            group.MapPost("/signup", async (CreateUserDto user, IAuthenicationService passwordHasher, ApplicationDbContext context) =>
             {
-                var newUser = user.ToUserModel();
+                var (hash,salt) = passwordHasher.HashPassword(user.Password);
+                var newUser = user.ToUserModel(hash, salt);
 
                 await context.AddAsync(newUser);
                 await context.SaveChangesAsync();
