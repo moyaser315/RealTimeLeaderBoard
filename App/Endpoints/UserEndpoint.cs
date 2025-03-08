@@ -1,11 +1,9 @@
-using System.Security.Claims;
 using App.Database;
 using App.Dtos;
 using App.Filters;
 using App.Mapping;
 using App.Services;
 using FluentValidation;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -81,8 +79,8 @@ namespace App.Endpoints
             // Login and signup
             group.MapPost("/signup", async (CreateUserDto user, IAuthenicationService authService, ApplicationDbContext context) =>
             {
-                var (hash, salt) = authService.HashPassword(user.Password);
-                var newUser = user.ToUserModel(hash, salt);
+                var hash = authService.HashPassword(user.Password);
+                var newUser = user.ToUserModel(hash);
 
                 await context.AddAsync(newUser);
                 await context.SaveChangesAsync();
@@ -98,7 +96,7 @@ namespace App.Endpoints
                 {
                     return Results.NotFound("password or email maybe wrong");
                 }
-                if (authService.VerifyPassword(user.Password, existingUser.Password, existingUser.Salt))
+                if (authService.VerifyPassword(user.Password, existingUser.Password))
                 {
                     var token = authService.GenerateJwtToken(existingUser.Id, existingUser.UserName);
                     return Results.Ok(new { Token = token });
