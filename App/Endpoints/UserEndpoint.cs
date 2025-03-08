@@ -15,27 +15,29 @@ namespace App.Endpoints
     {
         public static RouteGroupBuilder MapUserEndpoints(this WebApplication app)
         {
-            var group = app.MapGroup("user");
+            var group = app.MapGroup("user").RequireAuthorization().WithTags("Users");
 
-            group.MapGet("/{id}", async (int id, ApplicationDbContext context) =>
+            // Get user info
+            group.MapGet("/", async (HttpContext httpContext, ApplicationDbContext context) =>
             {
+                var id = httpContext.GetUserId();
+                if(id == null){
+                    return Results.Unauthorized();
+                }
                 var user = await context.Users.FindAsync(id);
                 return user is null ? Results.NotFound() : Results.Ok(user.ToUserDto());
             });
-
+            
+            
+            // Get user scores
             group.MapGet("/scores", async (HttpContext httpContext, [FromQuery(Name = "sort")] int order, ApplicationDbContext context) =>
             {
-                if (httpContext.User.Identity is not { IsAuthenticated: true })
-                {
+                var uid = httpContext.GetUserId();
+                if(uid == null){
                     return Results.Unauthorized();
                 }
-                var uidClaim = httpContext.User.FindFirst(ClaimTypes.NameIdentifier);
-                if (uidClaim is null || !int.TryParse(uidClaim.Value, out var id))
-                {
-                    return Results.BadRequest("Invalid token.");
-                }
                 var scoreList = await context.Scores
-                .Where(s => s.UserId == id)
+                .Where(s => s.UserId == uid)
                 .Include(s => s.Game)
                 .Select(s => s.ToScoreDto())
                 .ToListAsync();
@@ -47,19 +49,36 @@ namespace App.Endpoints
                 scoreList = order == 1 ? [.. scoreList.OrderByDescending(s => s.Score)] : [.. scoreList.OrderByDescending(s => s.TimeStamp)];
 
                 return Results.Ok(scoreList);
-            }).RequireAuthorization();
-
-            group.MapPost("/{uid}/{id}", async (int uid, int id, SubmitScoreDto score, ApplicationDbContext context) =>
+            });
+            
+            
+            // Get user scores in a specific game
+            group.MapPost("/{id}", async (HttpContext httpContext, int id, SubmitScoreDto score, ApplicationDbContext context) =>
             {
-                var scoreModel = score.ToScoreModel(uid, id);
+                var uid = httpContext.GetUserId();
+                if(uid == null){
+                    return Results.Unauthorized();
+                }
+                var scoreModel = score.ToScoreModel((int)uid, id);
                 scoreModel.User = context.Users.Find(uid);
                 scoreModel.Game = context.Games.Find(id);
                 context.Add(scoreModel);
                 await context.SaveChangesAsync();
                 return Results.Created();
 
-            }).RequireAuthorization(); ;
-
+            });
+            
+            group.MapDelete("score/{id}",async (int id, HttpContext httpContext, ApplicationDbContext context) =>{
+                var uid = httpContext.GetUserId();
+                if(uid == null){
+                    return Results.Unauthorized();
+                }
+                Console.WriteLine("reached here");
+                await context.Scores.Where(s=>s.Id == id).ExecuteDeleteAsync();
+                return Results.NoContent();
+            });
+            
+            // Login and signup
             group.MapPost("/signup", async (CreateUserDto user, IAuthenicationService authService, ApplicationDbContext context) =>
             {
                 var (hash, salt) = authService.HashPassword(user.Password);
@@ -69,7 +88,7 @@ namespace App.Endpoints
                 await context.SaveChangesAsync();
 
                 return Results.Created();
-            }).AddEndpointFilter<ValidationFilter<CreateUserDto>>();
+            }).AllowAnonymous().AddEndpointFilter<ValidationFilter<CreateUserDto>>();
 
             group.MapPost("/login", async (UserLoginDto user, IAuthenicationService authService, ApplicationDbContext context) =>
             {
@@ -87,7 +106,7 @@ namespace App.Endpoints
 
 
                 return Results.NotFound("password or email maybe wrong");
-            });
+            }).AllowAnonymous();
 
             return group;
         }

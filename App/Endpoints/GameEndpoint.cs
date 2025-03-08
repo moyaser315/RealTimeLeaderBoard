@@ -9,7 +9,7 @@ namespace App.Endpoints
     {
         public static RouteGroupBuilder MapGameEndpoints(this WebApplication app)
         {
-            var group = app.MapGroup("games");
+            var group = app.MapGroup("games").WithTags("Games");;
 
             // Get All Games
             group.MapGet("/", async (ApplicationDbContext context) =>
