@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 using Microsoft.IdentityModel.Tokens;
 
 namespace App.Services
@@ -41,34 +36,14 @@ namespace App.Services
             return new JwtSecurityTokenHandler().WriteToken(tokenDescriptor);
         }
 
-        public (string Hash, string salt) HashPassword(string password)
+        public string HashPassword(string password)
         {
-            byte[] saltBytes = new byte[16];
-            using (var rng = RandomNumberGenerator.Create())
-            {
-                rng.GetBytes(saltBytes);
-            }
-            string salt = Convert.ToBase64String(saltBytes);
-            string saltedPassword = salt + password;
-
-            using (SHA256 sha256 = SHA256.Create())
-            {
-                byte[] hashBytes = new byte[sha256.HashSize / 8];
-                SHA256.HashData(Encoding.UTF8.GetBytes(saltedPassword), hashBytes);
-                string hash = Convert.ToBase64String(hashBytes);
-                return (hash, salt);
-            }
+            return BCrypt.Net.BCrypt.HashPassword(password);
         }
 
-        public bool VerifyPassword(string password, string hash, string salt)
+        public bool VerifyPassword(string password, string hash)
         {
-            string saltedPassword = salt + password;
-
-            byte[] hashBytes = new byte[32];
-            SHA256.HashData(Encoding.UTF8.GetBytes(saltedPassword), hashBytes);
-
-            string computedHash = Convert.ToBase64String(hashBytes);
-            return computedHash == hash;
+            return BCrypt.Net.BCrypt.Verify(password, hash);
         }
     }
 }

@@ -36,7 +36,7 @@ namespace App.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Games");
+                    b.ToTable("Games", (string)null);
 
                     b.HasData(
                         new
@@ -84,7 +84,7 @@ namespace App.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Scores");
+                    b.ToTable("Scores", (string)null);
 
                     b.HasData(
                         new
@@ -116,10 +116,6 @@ namespace App.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Salt")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("UserName")
                         .IsRequired()
                         .HasColumnType("text");
@@ -132,7 +128,7 @@ namespace App.Migrations
                     b.HasIndex("UserName")
                         .IsUnique();
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("App.Models.ScoreModel", b =>

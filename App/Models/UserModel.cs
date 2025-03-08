@@ -15,8 +15,7 @@ namespace App.Models
         public required string UserName { get; set; }
         [Required]
         public required string Password { get; set; }
-        [Required]
-        public required string Salt { get; set; }
+
 
         [EmailAddress]
         [Required]
