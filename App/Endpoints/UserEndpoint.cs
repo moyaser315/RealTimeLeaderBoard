@@ -4,6 +4,7 @@ using App.Filters;
 using App.Mapping;
 using App.Services;
 using FluentValidation;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -48,28 +49,35 @@ namespace App.Endpoints
 
             });
 
-            group.MapPost("/signup", async (CreateUserDto user, IAuthenicationService passwordHasher, ApplicationDbContext context) =>
+            group.MapPost("/signup", async (CreateUserDto user, IAuthenicationService authService, ApplicationDbContext context) =>
             {
-                var (hash,salt) = passwordHasher.HashPassword(user.Password);
+                var (hash,salt) = authService.HashPassword(user.Password);
+                Console.WriteLine($"reached here {hash}\n {salt}\n {user.Password}");
                 var newUser = user.ToUserModel(hash, salt);
+                Console.WriteLine($"reached here {newUser.Password}");
 
                 await context.AddAsync(newUser);
+                Console.WriteLine("Reached here");
                 await context.SaveChangesAsync();
                 
                 return Results.Created();
             }).AddEndpointFilter<ValidationFilter<CreateUserDto>>();
 
-            group.MapPost("/login", async (UserLoginDto user, ApplicationDbContext context) =>
+            group.MapPost("/login", async (UserLoginDto user,IAuthenicationService authService, ApplicationDbContext context) =>
             {
-                var pass = await context.Users.FirstOrDefaultAsync(u => u.Email == user.Email);
+                var existingUser = await context.Users.FirstOrDefaultAsync(u => u.Email == user.Email);
 
-                if (pass is null)
+                if (existingUser is null)
                 {
-                    return Results.NotFound("pass or mail maybe wrong");
+                    return Results.NotFound("password or email maybe wrong");
+                }
+                if(authService.VerifyPassword(user.Password, existingUser.Password, existingUser.Salt)){
+                    var token = authService.GenerateJwtToken(existingUser.Id,existingUser.UserName);
+                    return Results.Ok(new { Token = token });
                 }
 
 
-                return user.Password == pass!.Password ? Results.Ok("Logged") : Results.NotFound("Password or mail maybe wrong");
+                return Results.NotFound("password or email maybe wrong");
             });
 
             return group;

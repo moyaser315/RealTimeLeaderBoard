@@ -33,7 +33,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateLifetime = true
         };
     });
-builder.Services.AddSingleton<AuthenicationService>();
+builder.Services.AddScoped<IAuthenicationService,AuthenicationService>();
+
 builder.Services.AddAuthorization();
 
 builder.Services.AddEndpointsApiExplorer();
