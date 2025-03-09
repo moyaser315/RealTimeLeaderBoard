@@ -19,19 +19,25 @@ namespace App.Endpoints
             group.MapGet("/", async (HttpContext httpContext, ApplicationDbContext context) =>
             {
                 var id = httpContext.GetUserId();
-                if(id == null){
+                if (id == null)
+                {
                     return Results.Unauthorized();
                 }
                 var user = await context.Users.FindAsync(id);
                 return user is null ? Results.NotFound() : Results.Ok(user.ToUserDto());
             });
-            
-            
+
+
             // Get user scores
-            group.MapGet("/scores", async (HttpContext httpContext, [FromQuery(Name = "sort")] int order, ApplicationDbContext context) =>
+            group.MapGet("/scores", async (HttpContext httpContext,
+            [FromQuery(Name = "sort")] int? order,
+            [FromQuery(Name = "start")] DateTime? startDate,
+            [FromQuery(Name = "end")] DateTime? endDate,
+             ApplicationDbContext context) =>
             {
                 var uid = httpContext.GetUserId();
-                if(uid == null){
+                if (uid == null)
+                {
                     return Results.Unauthorized();
                 }
                 var scoreList = await context.Scores
@@ -43,18 +49,36 @@ namespace App.Endpoints
                 {
                     Results.NotFound("User hasn't played yet");
                 }
+                if (order is not null)
+                {
+                    scoreList = order == 1 ? [.. scoreList.OrderByDescending(s => s.Score)] : [.. scoreList.OrderByDescending(s => s.TimeStamp)];
+                }
+                if (startDate is not null)
+                {
+                    if (endDate is not null)
+                    {
+                        scoreList = [.. scoreList
+                                        .Where(x => x.TimeStamp >= startDate.Value
+                                        && x.TimeStamp <= endDate.Value)
+                                    ];
+                    }
+                    else{
+                        scoreList = [.. scoreList.Where(time => time.TimeStamp>= startDate.Value)];
+                    }
 
-                scoreList = order == 1 ? [.. scoreList.OrderByDescending(s => s.Score)] : [.. scoreList.OrderByDescending(s => s.TimeStamp)];
+                }
+
 
                 return Results.Ok(scoreList);
             });
-            
-            
+
+
             // Get user scores in a specific game
             group.MapPost("/{id}", async (HttpContext httpContext, int id, SubmitScoreDto score, ApplicationDbContext context) =>
             {
                 var uid = httpContext.GetUserId();
-                if(uid == null){
+                if (uid == null)
+                {
                     return Results.Unauthorized();
                 }
                 var scoreModel = score.ToScoreModel((int)uid, id);
@@ -65,17 +89,19 @@ namespace App.Endpoints
                 return Results.Created();
 
             });
-            
-            group.MapDelete("score/{id}",async (int id, HttpContext httpContext, ApplicationDbContext context) =>{
+
+            group.MapDelete("score/{id}", async (int id, HttpContext httpContext, ApplicationDbContext context) =>
+            {
                 var uid = httpContext.GetUserId();
-                if(uid == null){
+                if (uid == null)
+                {
                     return Results.Unauthorized();
                 }
                 Console.WriteLine("reached here");
-                await context.Scores.Where(s=>s.Id == id).ExecuteDeleteAsync();
+                await context.Scores.Where(s => s.Id == id).ExecuteDeleteAsync();
                 return Results.NoContent();
             });
-            
+
             // Login and signup
             group.MapPost("/signup", async (CreateUserDto user, IAuthenicationService authService, ApplicationDbContext context) =>
             {
