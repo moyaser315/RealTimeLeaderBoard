@@ -1,3 +1,45 @@
+### get game names
 GET http://localhost:5048/games
-###
+### get game leaderboard 
 GET http://localhost:5048/games/1
+### create new score
+POST http://localhost:5048/user/3
+Authorization: Bearer 
+Content-Type: application/json
+
+{
+    "score":500
+}
+
+
+### get scores of user
+GET http://localhost:5048/user/scores?sort=0&end=2025-03-09T00:00:00Z&start=2025-03-06T00:00:00Z
+Authorization: Bearer 
+
+
+###Signup
+POST http://localhost:5048/user/signup
+Content-Type: application/json
+Content-Length: 102
+
+{
+  "name": "name",
+  "email": "email@email.com",
+  "password": "Pass123",
+  "userName": "string"
+}
+
+### Login
+POST http://localhost:5048/user/login
+Content-Type: application/json
+Content-Length: 56
+
+{
+  "email": "email@email.com",
+  "password": "Pass123"
+}
+
+
+###User info
+GET http://localhost:5048/user 
+Authorization: Bearer 
