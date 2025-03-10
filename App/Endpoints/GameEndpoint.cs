@@ -1,6 +1,7 @@
 using App.Database;
 using App.Dtos;
 using App.Mapping;
+using App.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace App.Endpoints
@@ -28,21 +29,26 @@ namespace App.Endpoints
                 );
             
             // Get Game Scores
-            group.MapGet("/{id}", async (int id, ApplicationDbContext context) =>
+            group.MapGet("/{id}", async (int id, ApplicationDbContext context, IRedisCacheService cache) =>
             {
-                var gameScores = await context.Scores
-                .Where(g => g.GameID == id)
-                .Include(g => g.User)
-                .OrderByDescending(g => g.Score)
-                .Select(g => g.ToGameScoreDto())
-                .ToListAsync();
-                // .Select(g => g.ToGameScoreDto())
-                // .OrderByDescending(g => g.Score)
-                
+                string cacheKey = $"game_scores_{id}";
+                var cachedScores = await cache.GetCacheAsync<List<GameScoreDto>>(cacheKey);
 
-                return gameScores.Count == 0 ? 
-                Results.NotFound("There's No such Game") :
-                Results.Ok(gameScores);
+                if (cachedScores is not null) return Results.Ok(cachedScores);
+
+                var gameScores = await context.Scores
+                    .Where(g => g.GameID == id)
+                    .Include(g => g.User)
+                    .OrderByDescending(g => g.Score)
+                    .Select(g => g.ToGameScoreDto())
+                    .ToListAsync();
+
+                if (gameScores.Count == 0) return Results.NotFound("There's No such Game");
+
+
+                await cache.SetCacheAsync(cacheKey, gameScores, TimeSpan.FromMinutes(5));
+
+                return Results.Ok(gameScores);
             }
             ).WithName("GetGame");
 

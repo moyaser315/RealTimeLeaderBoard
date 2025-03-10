@@ -4,7 +4,7 @@ using App.Endpoints;
 using App.Services;
 using App.Validators;
 using FluentValidation;
-using FluentValidation.AspNetCore;
+using StackExchange.Redis;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
@@ -13,6 +13,9 @@ var builder = WebApplication.CreateBuilder(args);
 var connString = builder.Configuration.GetConnectionString("AppDb");
 builder.Services.AddNpgsql<ApplicationDbContext>(connString);
 
+builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+    ConnectionMultiplexer.Connect("localhost:6379"));
+    
 builder.Services.AddValidatorsFromAssemblyContaining<UserValidator>();
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
