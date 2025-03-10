@@ -15,7 +15,7 @@ builder.Services.AddNpgsql<ApplicationDbContext>(connString);
 
 builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
     ConnectionMultiplexer.Connect("localhost:6379"));
-    
+builder.Services.AddScoped<IRedisCacheService,RedisCacheService>();
 builder.Services.AddValidatorsFromAssemblyContaining<UserValidator>();
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
