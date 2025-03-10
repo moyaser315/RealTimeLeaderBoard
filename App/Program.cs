@@ -10,12 +10,15 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connString = builder.Configuration.GetConnectionString("AppDb");
-builder.Services.AddNpgsql<ApplicationDbContext>(connString);
+var connStringDb = builder.Configuration.GetConnectionString("AppDb");
+builder.Services.AddNpgsql<ApplicationDbContext>(connStringDb);
 
+var connStringCache = builder.Configuration.GetConnectionString("redis");
 builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
-    ConnectionMultiplexer.Connect("localhost:6379"));
+    ConnectionMultiplexer.Connect(connStringCache));
 builder.Services.AddScoped<IRedisCacheService,RedisCacheService>();
+
+
 builder.Services.AddValidatorsFromAssemblyContaining<UserValidator>();
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
