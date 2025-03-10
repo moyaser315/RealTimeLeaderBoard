@@ -73,19 +73,40 @@ namespace App.Endpoints
             });
 
 
-            // Get user scores in a specific game
-            group.MapPost("/{id}", async (HttpContext httpContext, int id, SubmitScoreDto score, ApplicationDbContext context) =>
+            // Save new Score
+            group.MapPost("/{id}", async (
+                HttpContext httpContext,
+                int id,
+                SubmitScoreDto score,
+                ApplicationDbContext context,
+                IRedisCacheService cache) =>
             {
                 var uid = httpContext.GetUserId();
                 if (uid == null)
                 {
                     return Results.Unauthorized();
                 }
+
+                var game = await context.Games.FindAsync(id);
+                if (game == null) return Results.NotFound("Game not found");
+
                 var scoreModel = score.ToScoreModel((int)uid, id);
                 scoreModel.User = context.Users.Find(uid);
                 scoreModel.Game = context.Games.Find(id);
                 context.Add(scoreModel);
                 await context.SaveChangesAsync();
+
+                string cacheKey = $"game_scores_{id}";
+
+
+                var leaderboard = await cache.GetCacheAsync<List<GameScoreDto>>(cacheKey) ?? new List<GameScoreDto>();
+
+
+                leaderboard.Add(scoreModel.ToGameScoreDto());
+                leaderboard = leaderboard.OrderByDescending(s => s.Score).ToList();
+
+                await cache.SetCacheAsync(cacheKey, leaderboard, TimeSpan.FromMinutes(5));
+
                 return Results.Created();
 
             });
